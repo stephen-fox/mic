@@ -15,7 +15,7 @@ const (
 
 	installerApplicationPathArg = "i"
 	isoFileOutputArg            = "o"
-	forceHighSierraArg          = "-high-sierra-strategy"
+	forceHighSierraArg          = "high-sierra-strategy"
 
 	noLogArg    = "q"
 	versionArg  = "v"
@@ -31,7 +31,7 @@ var (
 
 	installerApplicationPath = flag.String(installerApplicationPathArg, "", "The path to the macOS installer application")
 	isoFileOutputPath        = flag.String(isoFileOutputArg, "", "The path to save the .iso to")
-	forceHighSierra          = flag.Bool(forceHighSierraArg, false, "Try to create a .iso using High Sierra strategy")
+	forceHighSierra          = flag.Bool(forceHighSierraArg, false, "Force .iso creation to use the High Sierra strategy")
 
 	noLog         = flag.Bool(noLogArg, false, "Do not print log output")
 	printVersion  = flag.Bool(versionArg, false, "Prints the version")
