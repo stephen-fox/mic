@@ -63,7 +63,7 @@ func (o HighSierra) CreateIso(isoDestinationPath string, installerApplicationPat
 
 	err = cim.CreateDmg(cdrMountPath)
 	if err != nil {
-		return errors.New("Failed to create installer - " + err.Error())
+		return errors.New("Failed to create .dmg image - " + err.Error())
 	}
 
 	err = hdiutilw.Detach("/Volumes/Install macOS High Sierra")
@@ -80,11 +80,6 @@ func (o HighSierra) CreateIso(isoDestinationPath string, installerApplicationPat
 
 	if o.isLoggingEnabled {
 		log.Println("Converting image to an .iso...")
-	}
-
-	err = hdiutilw.Detach(cdrMountPath)
-	if err != nil {
-		return err
 	}
 
 	isoFinalFilePath, err := hdiutilw.ConvertImageToIso(cdrFinalFilePath, iso.Name())
