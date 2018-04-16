@@ -10,7 +10,7 @@ through the App Store. These installers are usually less than 1 GB in size.
 Otherwise, they appear the same as a normal installer. Make sure to verify
 installer before using this application.
 
-For more information, refer to [this forum post](https://www.jamf.com/jamf-nation/discussions/25519/macos-high-sierra-10-13-0-where-to-download-full-installer.
+For more information, refer to [this forum post](https://www.jamf.com/jamf-nation/discussions/25519/macos-high-sierra-10-13-0-where-to-download-full-installer).
 
 ## How do I use it?
 First, download a macOS installer from the App Store. Once the download is
