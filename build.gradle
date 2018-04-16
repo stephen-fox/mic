@@ -1,0 +1,54 @@
+apply plugin: 'base'
+
+version = externalVersion
+
+task buildApplication(type: Task) {
+    description 'Builds the application.'
+    group 'build'
+    doLast {
+        File sourcesDir = file(projectDir.absolutePath + '/cmd/' + project.name)
+        List<String> ldFlags = ['-X main.version=' + version.toString(), '-s', '-w']
+
+        if ('' == targetOs) {
+            if (goBuild(sourcesDir, buildDir, project.name, 'darwin', 'amd64', ldFlags) > 0) {
+                throw new GradleException('Failed to compile the application for macOS')
+            }
+        } else {
+            if (goBuild(sourcesDir, buildDir, project.name, targetOs, 'amd64', ldFlags) > 0) {
+                throw new GradleException('Failed to compile the application for ' + targetOs)
+            }
+        }
+    }
+}
+
+int goBuild(File sourceCodeDir, File outputDir, String binaryName, String os, String arch, List<String> ldFlags) {
+    List<String> command = ['go', 'build']
+
+    if (!arch?.trim()) {
+        throw new GradleException('Please specify the target arch')
+    }
+
+    if (!os?.trim()) {
+        throw new GradleException('Please specify the target operating system')
+    }
+
+    if (!ldFlags?.isEmpty()) {
+        command.add('-ldflags')
+        command.add(ldFlags.join(' '))
+    }
+
+    String outputPath = outputDir.absolutePath + File.separator + binaryName + '-' + os + '-' + arch
+    if (os == 'windows') {
+        outputPath = outputPath + '.exe'
+    }
+    command.add('-o')
+    command.add(outputPath)
+
+    logger.quiet('Compiling ' + sourceCodeDir.absolutePath + ' for ' + os + ', ' + arch + '...')
+
+    return exec {
+        environment GOARCH: arch, GOOS: os
+        workingDir sourceCodeDir.absolutePath
+        commandLine command
+    }.exitValue
+}
