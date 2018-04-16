@@ -2,6 +2,24 @@ apply plugin: 'base'
 
 version = externalVersion
 
+task setup(type: Task) {
+    description 'Sets up the required dependnecies.'
+    group 'build setup'
+    doLast {
+        List<String> goPackages = [
+                'github.com/stephen-fox/cabinet'
+        ]
+
+        for (String goPackage : goPackages) {
+            logger.quiet('Getting ' + goPackage + '...')
+            exec {
+                commandLine 'go', 'get', goPackage
+            }
+            logger.quiet('Got ' + goPackage)
+        }
+    }
+}
+
 task buildApplication(type: Task) {
     description 'Builds the application.'
     group 'build'
