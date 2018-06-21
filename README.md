@@ -9,9 +9,8 @@ found in the macOS App Store.
 #### Minimal App Store installers
 Starting with High Sierra, Apple sometimes provides "minimal" macOS installers
 through the App Store. These installers are usually less than 1 GB in size.
-Otherwise, they appear the same as a normal installer. Make sure to verify
-installer before using this application. The application cannot use minimal
-installers to create a .iso.
+Otherwise, they appear the same as a normal installer. Make sure to verify the
+installer before using this tool. The tool does not support minimal installers.
 
 For more information, refer to [this forum post](https://www.jamf.com/jamf-nation/discussions/25519/macos-high-sierra-10-13-0-where-to-download-full-installer).
 
