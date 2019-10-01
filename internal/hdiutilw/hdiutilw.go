@@ -86,11 +86,13 @@ func CreateSparseImage(filePath string, sizeMb int) (string, error) {
 	return "", errors.New("Failed to create sparseimage")
 }
 
-func CreateCdr(filePath string, sizeMb int) (string, error) {
+func CreateCdr(filePath string, sizeBytes int64) (string, error) {
 	args := []string{
 		createArg,
 		outputArg, filePath,
-		sizeArg, strconv.Itoa(sizeMb) + "m",
+		// The '-size' argument does not support bytes, but it does
+		// support kilobytes.
+		sizeArg, strconv.FormatInt(sizeBytes / 1000, 10) + "k",
 		layoutArg, "SPUD",
 		fileSystemArg, "HFS+J",
 	}

@@ -2,9 +2,13 @@ package mic
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
+	"strings"
 
 	"github.com/stephen-fox/mic/internal/createinstallmediautil"
 	"github.com/stephen-fox/mic/internal/hdiutilw"
@@ -36,11 +40,19 @@ func (o HighSierra) CreateIso(isoDestinationPath string, installerApplicationPat
 	cdr.Close()
 	os.Remove(cdr.Name())
 
+	installerAppSizeBytes, err := dirSizeBytes(installerApplicationPath)
+	if err != nil {
+		return fmt.Errorf("failed to get installer application size - %s", err.Error())
+	}
+
+	// Add another 500 mb.
+	installerAppSizeBytes += 500000000
+
 	if o.isLoggingEnabled {
 		log.Println("Creating empty .cdr...")
 	}
 
-	cdrFinalFilePath, err := hdiutilw.CreateCdr(cdr.Name(), 5500)
+	cdrFinalFilePath, err := hdiutilw.CreateCdr(cdr.Name(), installerAppSizeBytes)
 	if err != nil {
 		return err
 	}
@@ -62,13 +74,30 @@ func (o HighSierra) CreateIso(isoDestinationPath string, installerApplicationPat
 	}
 
 	err = cim.CreateDmg(cdrMountPath)
+
+	// First, unmount the installer volume.
+	volumesPath := "/Volumes"
+	infos, err := ioutil.ReadDir(volumesPath)
 	if err != nil {
-		return errors.New("Failed to create .dmg image - " + err.Error())
+		if o.isLoggingEnabled {
+			log.Printf("unable to unmount installer volume - failed to read volumes directory - %s", err.Error())
+		}
+	} else {
+		installerAppName := strings.TrimSuffix(path.Base(installerApplicationPath), ".app")
+		for _, info := range infos {
+			if strings.Contains(info.Name(), installerAppName) {
+				err := hdiutilw.Detach(path.Join(volumesPath, info.Name()))
+				if err != nil && o.isLoggingEnabled {
+					log.Printf("failed to detach installer volumes - %s", err.Error())
+				}
+			}
+		}
 	}
 
-	err = hdiutilw.Detach("/Volumes/Install macOS High Sierra")
+	// Process the error for creating the .dmg *after* unmounting
+	// the installer volume.
 	if err != nil {
-		return err
+		return errors.New("Failed to create .dmg image - " + err.Error())
 	}
 
 	iso, err := ioutil.TempFile("", "macos-installer-iso-")
@@ -93,4 +122,19 @@ func (o HighSierra) CreateIso(isoDestinationPath string, installerApplicationPat
 	}
 
 	return nil
+}
+
+// https://stackoverflow.com/a/32482941
+func dirSizeBytes(path string) (int64, error) {
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size, err
 }
