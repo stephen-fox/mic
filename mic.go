@@ -91,17 +91,17 @@ func copyInstallerResources(sourceMountPath string, destinationMountPath string)
 		return errors.New("Failed to remove packages symlink - " + err.Error())
 	}
 
-	err = cabinet.CopyDirectory(sourceMountPath + "/Packages", tempInstallation, false)
+	err = cabinet.CopyDirectory(sourceMountPath+"/Packages", tempInstallation, false)
 	if err != nil {
 		return errors.New("Failed to copy installer packages into .iso - " + err.Error())
 	}
 
-	err = cabinet.CopyFile(sourceMountPath + "/BaseSystem.chunklist", destinationMountPath, false)
+	err = cabinet.CopyFile(sourceMountPath+"/BaseSystem.chunklist", destinationMountPath, false)
 	if err != nil {
 		return errors.New("Failed to copy installer chunklist into .iso - " + err.Error())
 	}
 
-	err = cabinet.CopyFile(sourceMountPath + "/BaseSystem.dmg", destinationMountPath, false)
+	err = cabinet.CopyFile(sourceMountPath+"/BaseSystem.dmg", destinationMountPath, false)
 	if err != nil {
 		return errors.New("Failed to copy installer BaseSystem.dmg into .iso - " + err.Error())
 	}
