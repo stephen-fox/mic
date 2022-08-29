@@ -36,10 +36,24 @@ func Get(installerPath string) (Installer, error) {
 		return &PreHighSierra{}, err
 	}
 
-	for _, l := range strings.Split(string(raw), "\n") {
-		if strings.Contains(strings.ToLower(l),"install macos high sierra") {
+	for _, line := range strings.Split(string(raw), "\n") {
+		isHighSierra := true
+
+		lower := strings.ToLower(line)
+		switch {
+		case strings.Contains(lower, "install macos high sierra"):
+		case strings.Contains(lower, "install macos mojave"):
+		case strings.Contains(lower, "install macos catalina"):
+		case strings.Contains(lower, "install macos big sur"):
+		case strings.Contains(lower, "install macos monterey"):
+		case strings.Contains(lower, "install macos ventura"):
+		default:
+			isHighSierra = false
+		}
+
+		if isHighSierra {
 			return &HighSierra{
-				name: "High Sierra",
+				name: "Post-High Sierra ('" + line + "')",
 			}, nil
 		}
 	}
