@@ -33,26 +33,33 @@ func (o HighSierra) CreateIso(isoDestinationPath string, installerApplicationPat
 		return err
 	}
 
-	cdr, err := ioutil.TempFile("", "macos-installer-cdr-")
+	// Note: Creating individual temp files and removing them
+	// seems to cause some kind of file system race. It was
+	// unnecessary to begin with - but "Resource temporarily
+	// unavailable" errors sealed the deal.
+	tempDirPath, err := ioutil.TempDir("", "macos-installer-")
 	if err != nil {
 		return errors.New("Failed to create empty .cdr file - " + err.Error())
 	}
-	cdr.Close()
-	os.Remove(cdr.Name())
 
 	installerAppSizeBytes, err := dirSizeBytes(installerApplicationPath)
 	if err != nil {
 		return fmt.Errorf("failed to get installer application size - %s", err.Error())
 	}
 
-	// Add another 500 mb.
-	installerAppSizeBytes += 500000000
+	// TODO: Used to be 500 mb - now 5gb.
+	//
+	// Investigate auto-sizing based on hdiutil error:
+	// Failed to create .dmg image - Failed to execute command:
+	// '.../createinstallmedia --volume /tmp/mount-cdr-12345 --nointeraction'. Output:
+	// /tmp/mount-cdr-12345 is not large enough for install media. An additional 1.34 GB is needed.
+	installerAppSizeBytes += 5000000000
 
 	if o.isLoggingEnabled {
-		log.Println("Creating empty .cdr...")
+		log.Printf("Creating empty %d gb .cdr...", installerAppSizeBytes/1000000000)
 	}
 
-	cdrFinalFilePath, err := hdiutilw.CreateCdr(cdr.Name(), installerAppSizeBytes)
+	cdrFinalFilePath, err := hdiutilw.CreateCdr(path.Join(tempDirPath, "cdr"), installerAppSizeBytes)
 	if err != nil {
 		return err
 	}
@@ -73,45 +80,41 @@ func (o HighSierra) CreateIso(isoDestinationPath string, installerApplicationPat
 		log.Println("Writing installer files to image...")
 	}
 
-	err = cim.CreateDmg(cdrMountPath)
-
-	// First, unmount the installer volume.
-	volumesPath := "/Volumes"
-	infos, err := ioutil.ReadDir(volumesPath)
-	if err != nil {
-		if o.isLoggingEnabled {
-			log.Printf("unable to unmount installer volume - failed to read volumes directory - %s", err.Error())
+	ejectInstallVolumeFn := func() {
+		const volumesPath = "/Volumes"
+		infos, err := ioutil.ReadDir(volumesPath)
+		if err != nil {
+			if o.isLoggingEnabled {
+				log.Printf("unable to unmount installer volume - failed to read volumes directory - %s",
+					err.Error())
+			}
+			return
 		}
-	} else {
+
 		installerAppName := strings.TrimSuffix(path.Base(installerApplicationPath), ".app")
 		for _, info := range infos {
 			if strings.Contains(info.Name(), installerAppName) {
-				err := hdiutilw.Detach(path.Join(volumesPath, info.Name()))
+				installVolume := path.Join(volumesPath, info.Name())
+				err := hdiutilw.ForceEject(installVolume)
 				if err != nil && o.isLoggingEnabled {
-					log.Printf("failed to detach installer volumes - %s", err.Error())
+					log.Printf("failed to detach installer volume '%s' - %s",
+						installVolume, err.Error())
 				}
 			}
 		}
 	}
 
-	// Process the error for creating the .dmg *after* unmounting
-	// the installer volume.
+	err = cim.CreateDmg(cdrMountPath)
+	ejectInstallVolumeFn()
 	if err != nil {
 		return errors.New("Failed to create .dmg image - " + err.Error())
 	}
-
-	iso, err := ioutil.TempFile("", "macos-installer-iso-")
-	if err != nil {
-		return errors.New("Failed to create empty .iso file - " + err.Error())
-	}
-	iso.Close()
-	os.Remove(iso.Name())
 
 	if o.isLoggingEnabled {
 		log.Println("Converting image to an .iso...")
 	}
 
-	isoFinalFilePath, err := hdiutilw.ConvertImageToIso(cdrFinalFilePath, iso.Name())
+	isoFinalFilePath, err := hdiutilw.ConvertImageToIso(cdrFinalFilePath, path.Join(tempDirPath, "installer-iso"))
 	if err != nil {
 		return err
 	}
