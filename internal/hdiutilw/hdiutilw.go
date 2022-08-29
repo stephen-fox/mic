@@ -101,7 +101,7 @@ func CreateCdr(filePath string, sizeBytes int64) (string, error) {
 		outputArg, filePath,
 		// The '-size' argument does not support bytes, but it does
 		// support kilobytes.
-		sizeArg, strconv.FormatInt(sizeBytes / 1000, 10) + "k",
+		sizeArg, strconv.FormatInt(sizeBytes/1000, 10) + "k",
 		layoutArg, "SPUD",
 		fileSystemArg, "HFS+J",
 	}
