@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/stephen-fox/mic"
+	"github.com/stephen-fox/mic/internal/executil"
 )
 
 const (
@@ -94,7 +95,10 @@ func main() {
 		log.Println("Determined installer as", installer.Name())
 	}
 
-	installer.SetLogging(!*noLog)
+	if !*noLog {
+		installer.SetLogging(true)
+		executil.Logger = log.Default()
+	}
 
 	err = installer.CreateIso(*isoFileOutputPath, *installerApplicationPath)
 	if err != nil {

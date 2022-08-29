@@ -2,12 +2,21 @@ package executil
 
 import (
 	"errors"
+	"log"
 	"os/exec"
 	"strings"
 )
 
+var (
+	Logger *log.Logger
+)
+
 func Run(exe string, args []string) ([]string, error) {
 	command := exec.Command(exe, args...)
+
+	if Logger != nil {
+		Logger.Printf("executing: '%s'...", command.Args)
+	}
 
 	raw, err := command.CombinedOutput()
 	outputStr := string(raw)
