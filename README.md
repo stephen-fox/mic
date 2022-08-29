@@ -37,4 +37,15 @@ complete, execute:
 ```
 
 ## Where do I download the tool?
-Refer to the project's releases / tags.
+Since this is a Go (Golang) application, the preferred method of installation
+is using `go install`. This automates downloading and building Go applications
+from source in a secure manner. By default, this copies applications
+into `~/go/bin/`.
+
+You must first [install Go](https://golang.org/doc/install). After
+installing Go, simply run the following command to install the application:
+
+```sh
+go install github.com/stephen-fox/mic/cmd/mic@latest
+# If successful, the exectuable should be in "~/go/bin/".
+```
