@@ -53,6 +53,15 @@ func Detach(mountPointPath string) error {
 	return err
 }
 
+func ForceEject(mountPointPath string) error {
+	args := []string{
+		"eject", "-force", mountPointPath,
+	}
+
+	_, err := executil.Run(ExePath, args)
+	return err
+}
+
 func Compact(filePath string) error {
 	args := []string{
 		compactArg, filePath,
