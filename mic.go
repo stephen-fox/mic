@@ -27,7 +27,7 @@ func Get(installerPath string) (Installer, error) {
 		return &PreHighSierra{}, err
 	}
 
-	if info.Size() > 100000 {
+	if info.Size() > 10000000 {
 		return &PreHighSierra{}, errors.New("Failed to parse installer's Info.plist - it is too big")
 	}
 
